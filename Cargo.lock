@@ -42,23 +42,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f68f53c83ab957f72c32642f3868eec03eb974d1fb82e453128456482613d36"
 
 [[package]]
-name = "blinky"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "critical-section",
- "embedded-graphics",
- "esp-hal",
- "esp-println",
- "itoa",
- "lazy_static",
- "nb 1.1.0",
- "no_std_strings",
- "ssd1306",
- "tinybmp",
-]
-
-[[package]]
 name = "byte-slice-cast"
 version = "1.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -539,6 +522,23 @@ checksum = "9f0ab39d5ae3b61b3a83f5616a03220a7dc9c4d6e4ed16d2da73d50bf8d798d7"
 dependencies = [
  "critical-section",
  "vcell",
+]
+
+[[package]]
+name = "espwatch"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "critical-section",
+ "embedded-graphics",
+ "esp-hal",
+ "esp-println",
+ "itoa",
+ "lazy_static",
+ "nb 1.1.0",
+ "no_std_strings",
+ "ssd1306",
+ "tinybmp",
 ]
 
 [[package]]

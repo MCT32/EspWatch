@@ -1,10 +1,10 @@
 [package]
 edition = "2021"
-name    = "blinky"
+name    = "espwatch"
 version = "0.1.0"
 
 [[bin]]
-name = "blinky"
+name = "espwatch"
 path = "./src/bin/main.rs"
 
 [dependencies]

@@ -13,7 +13,7 @@ use esp_hal::{
 use esp_println::println;
 use ssd1306::{mode::BufferedGraphicsMode, prelude::*, I2CDisplayInterface, Ssd1306};
 
-use blinky::clockface;
+use espwatch::clockface;
 use tinybmp::Bmp;
 
 static DISPLAY: Mutex<RefCell<Option<Ssd1306<I2CInterface<I2c<Blocking>>, DisplaySize128x64, BufferedGraphicsMode<DisplaySize128x64>>>>> = Mutex::new(RefCell::new(None));
