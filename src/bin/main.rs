@@ -90,7 +90,6 @@ fn handler() {
             .unwrap();
         button.is_interrupt_set() && button.is_low()
     }) {
-        println!("button");
         critical_section::with(|cs| {
             let mut menu_ref = MENU.borrow_ref_mut(cs);
             let menu = menu_ref.unwrap();
