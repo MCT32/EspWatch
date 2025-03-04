@@ -164,7 +164,11 @@ fn main() -> ! {
     display.set_brightness(Brightness::DIMMEST).unwrap();
 
     critical_section::with(|cs| {
-        DISPLAY.borrow_ref_mut(cs).replace(display)
+        let menu = MENU.borrow(cs).get();
+
+        DISPLAY.borrow_ref_mut(cs).replace(display);
+
+        render(menu)
     });
 
     let mut io = Io::new(peripherals.IO_MUX);
