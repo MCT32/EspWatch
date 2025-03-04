@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 
-use core::{cell::RefCell, panic::PanicInfo};
+use core::{cell::{Cell, RefCell}, panic::PanicInfo};
 use chrono::Timelike;
 
 use critical_section::Mutex;
@@ -21,8 +21,9 @@ type WatchDisplay<'a> = Ssd1306<I2CInterface<I2c<'a, Blocking>>, DisplaySize128x
 static DISPLAY: Mutex<RefCell<Option<WatchDisplay>>> = Mutex::new(RefCell::new(None));
 static RENDER_TIMER: Mutex<RefCell<Option<Alarm>>> = Mutex::new(RefCell::new(None));
 static BUTTON: Mutex<RefCell<Option<Input>>> = Mutex::new(RefCell::new(None));
-static MENU: Mutex<RefCell<Option<Menu>>> = Mutex::new(RefCell::new(None));
 static RTC: Mutex<RefCell<Option<Rtc>>> = Mutex::new(RefCell::new(None));
+
+static MENU: Mutex<Cell<Menu>> = Mutex::new(Cell::new(Menu::Clock));
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Menu {
@@ -93,19 +94,18 @@ fn handler() {
         button.is_interrupt_set() && button.is_low()
     }) {
         critical_section::with(|cs| {
-            let mut menu_ref = MENU.borrow_ref_mut(cs);
-            let menu = menu_ref.unwrap();
+            let menu = MENU.borrow(cs);
 
-            match menu {
+            match menu.get() {
                 Menu::Clock => {
-                    menu_ref.replace(Menu::NoBitches);
+                    menu.set(Menu::NoBitches);
                 },
                 Menu::NoBitches => {
-                    menu_ref.replace(Menu::Clock);
+                    menu.set(Menu::Clock);
                 }
             }
 
-            let menu = menu_ref.unwrap();
+            let menu = menu.get();
 
             render(menu);
         })
@@ -119,10 +119,9 @@ fn handler() {
             .is_interrupt_set()
     }) {
         critical_section::with(|cs| {
-            let mut menu_ref = MENU.borrow_ref_mut(cs);
-            let menu = menu_ref.as_mut().unwrap();
+            let menu = MENU.borrow(cs).get();
             
-            render(*menu)
+            render(menu)
         })
     }
 
@@ -175,8 +174,6 @@ fn main() -> ! {
     critical_section::with(|cs| {
         button.listen(Event::FallingEdge);
         BUTTON.borrow_ref_mut(cs).replace(button);
-
-        MENU.borrow_ref_mut(cs).replace(Menu::Clock)
     });
 
     let rtc = Rtc::new(peripherals.LPWR);
