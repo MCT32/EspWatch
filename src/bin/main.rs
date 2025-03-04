@@ -16,7 +16,9 @@ use ssd1306::{mode::BufferedGraphicsMode, prelude::*, I2CDisplayInterface, Ssd13
 use espwatch::clockface;
 use tinybmp::Bmp;
 
-static DISPLAY: Mutex<RefCell<Option<Ssd1306<I2CInterface<I2c<Blocking>>, DisplaySize128x64, BufferedGraphicsMode<DisplaySize128x64>>>>> = Mutex::new(RefCell::new(None));
+type WatchDisplay<'a> = Ssd1306<I2CInterface<I2c<'a, Blocking>>, DisplaySize128x64, BufferedGraphicsMode<DisplaySize128x64>>;
+
+static DISPLAY: Mutex<RefCell<Option<WatchDisplay>>> = Mutex::new(RefCell::new(None));
 static RENDER_TIMER: Mutex<RefCell<Option<Alarm>>> = Mutex::new(RefCell::new(None));
 static BUTTON: Mutex<RefCell<Option<Input>>> = Mutex::new(RefCell::new(None));
 static MENU: Mutex<RefCell<Option<Menu>>> = Mutex::new(RefCell::new(None));
