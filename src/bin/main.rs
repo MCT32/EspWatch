@@ -83,12 +83,14 @@ fn render_clock() {
 #[ram]
 fn handler() {
     if critical_section::with(|cs| {
-        BUTTON
-            .borrow_ref_mut(cs)
+        let mut button_ref = BUTTON
+            .borrow_ref_mut(cs);
+        let button = button_ref
             .as_mut()
-            .unwrap()
-            .is_interrupt_set()
+            .unwrap();
+        button.is_interrupt_set() && button.is_low()
     }) {
+        println!("button");
         critical_section::with(|cs| {
             let mut menu_ref = MENU.borrow_ref_mut(cs);
             let menu = menu_ref.unwrap();
@@ -101,6 +103,8 @@ fn handler() {
                     menu_ref.replace(Menu::Clock);
                 }
             }
+
+            let menu = menu_ref.unwrap();
 
             render(menu);
         })
@@ -166,9 +170,9 @@ fn main() -> ! {
     let mut io = Io::new(peripherals.IO_MUX);
     io.set_interrupt_handler(handler);
 
-    let mut button = Input::new(peripherals.GPIO1, Pull::Down);
+    let mut button = Input::new(peripherals.GPIO1, Pull::Up);
     critical_section::with(|cs| {
-        button.listen(Event::RisingEdge);
+        button.listen(Event::FallingEdge);
         BUTTON.borrow_ref_mut(cs).replace(button);
 
         MENU.borrow_ref_mut(cs).replace(Menu::Clock)
