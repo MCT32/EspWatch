@@ -23,12 +23,12 @@ static RENDER_TIMER: Mutex<RefCell<Option<Alarm>>> = Mutex::new(RefCell::new(Non
 static BUTTON: Mutex<RefCell<Option<Input>>> = Mutex::new(RefCell::new(None));
 static RTC: Mutex<RefCell<Option<Rtc>>> = Mutex::new(RefCell::new(None));
 
-static MENU: Mutex<Cell<Menu>> = Mutex::new(Cell::new(Menu::Clock));
+static PAGE: Mutex<Cell<Page>> = Mutex::new(Cell::new(Page::Clock));
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Menu {
+enum Page {
     Clock,
-    NoBitches
+    Settings
 }
 
 #[panic_handler]
@@ -38,27 +38,23 @@ fn panic_handler(_info: &PanicInfo) -> ! {
     loop {}
 }
 
-fn render(menu: Menu) {
-    match menu {
-        Menu::Clock => {
+fn render(page: Page) {
+    match page {
+        Page::Clock => {
             render_clock()
         },
-        Menu::NoBitches => {
-            render_nobitches();
+        Page::Settings => {
+            render_settings();
         }
     }
 }
 
-fn render_nobitches() {
+fn render_settings() {
     critical_section::with(|cs| {
         let mut display_ref = DISPLAY.borrow_ref_mut(cs);
         let display  = display_ref.as_mut().unwrap();
 
         display.clear_buffer();
-
-        let image_data = include_bytes!("../assets/nobitches.bmp");
-        let image_bmp = Bmp::from_slice(image_data).unwrap();
-        Image::new(&image_bmp, Point::zero()).draw(display).unwrap();
 
         display.flush().unwrap();
     });
@@ -94,20 +90,20 @@ fn handler() {
         button.is_interrupt_set() && button.is_low()
     }) {
         critical_section::with(|cs| {
-            let menu = MENU.borrow(cs);
+            let page = PAGE.borrow(cs);
 
-            match menu.get() {
-                Menu::Clock => {
-                    menu.set(Menu::NoBitches);
+            match page.get() {
+                Page::Clock => {
+                    page.set(Page::Settings);
                 },
-                Menu::NoBitches => {
-                    menu.set(Menu::Clock);
+                Page::Settings => {
+                    page.set(Page::Clock);
                 }
             }
 
-            let menu = menu.get();
+            let page = page.get();
 
-            render(menu);
+            render(page);
         })
     }
 
@@ -119,9 +115,11 @@ fn handler() {
             .is_interrupt_set()
     }) {
         critical_section::with(|cs| {
-            let menu = MENU.borrow(cs).get();
+            let page = PAGE.borrow(cs).get();
             
-            render(menu)
+            if page == Page::Clock {
+                render(page)
+            }
         })
     }
 
@@ -169,11 +167,11 @@ fn main() -> ! {
     display.set_brightness(Brightness::DIMMEST).unwrap();
 
     critical_section::with(|cs| {
-        let menu = MENU.borrow(cs).get();
+        let page = PAGE.borrow(cs).get();
 
         DISPLAY.borrow_ref_mut(cs).replace(display);
 
-        render(menu)
+        render(page)
     });
 
     let mut io = Io::new(peripherals.IO_MUX);
