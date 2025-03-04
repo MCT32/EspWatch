@@ -145,6 +145,11 @@ fn main() -> ! {
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::_80MHz);
     let peripherals = esp_hal::init(config);
 
+    let rtc = Rtc::new(peripherals.LPWR);
+    critical_section::with(|cs| {
+        RTC.borrow_ref_mut(cs).replace(rtc);
+    });
+
     let i2c = I2c::new(
         peripherals.I2C0,
         esp_hal::i2c::master::Config::default(),
@@ -178,11 +183,6 @@ fn main() -> ! {
     critical_section::with(|cs| {
         button.listen(Event::FallingEdge);
         BUTTON.borrow_ref_mut(cs).replace(button);
-    });
-
-    let rtc = Rtc::new(peripherals.LPWR);
-    critical_section::with(|cs| {
-        RTC.borrow_ref_mut(cs).replace(rtc);
     });
 
     let syst = SystemTimer::new(peripherals.SYSTIMER);
